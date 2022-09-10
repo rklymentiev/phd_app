@@ -1,6 +1,8 @@
 # source of motivation: https://github.com/ashishrana160796/SchellingModelSimulation
 # to run the script locally run the command `streamlit run app.py`
 # documentation: https://docs.streamlit.io/knowledge-base/using-streamlit/how-do-i-run-my-streamlit-script
+# small issue with the app: whenever "Run the simulation" button is pressed, streamlit reruns *everything*,
+# so the initial graph is also updating
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -107,12 +109,12 @@ def plot_graph(g, p, n_classes, show_labels, nodes_size, thresh):
     fig, ax = plt.subplots(figsize=(10, 8))
     if len(empty_nodes) != 0:
         nx.draw_networkx_nodes(g, p, node_color='white', nodelist=empty_nodes, node_size=nodes_size)
-    nx.draw_networkx_nodes(g, p, node_color='red', nodelist=type2_nodes, node_size=nodes_size)
-    nx.draw_networkx_nodes(g, p, node_color='green', nodelist=type1_nodes, node_size=nodes_size)
+    nx.draw_networkx_nodes(g, p, node_color='red', nodelist=type2_nodes, node_size=nodes_size, edgecolors='black')
+    nx.draw_networkx_nodes(g, p, node_color='green', nodelist=type1_nodes, node_size=nodes_size, edgecolors='black')
     if n_classes >= 3:
-        nx.draw_networkx_nodes(g, p, node_color='orange', nodelist=type3_nodes, node_size=nodes_size)
+        nx.draw_networkx_nodes(g, p, node_color='orange', nodelist=type3_nodes, node_size=nodes_size, edgecolors='black')
     if n_classes >= 4:
-        nx.draw_networkx_nodes(g, p, node_color='lightblue', nodelist=type4_nodes, node_size=nodes_size)
+        nx.draw_networkx_nodes(g, p, node_color='lightblue', nodelist=type4_nodes, node_size=nodes_size, edgecolors='black')
 
     _, unsatisfied_nodes = get_unsatisfied_nodes(graph, thresh)
     
@@ -130,7 +132,7 @@ def plot_graph(g, p, n_classes, show_labels, nodes_size, thresh):
 st.set_page_config(
     page_title='PhD Computational Task', layout="centered")
 st.title('PhD Computational Task')
-st.markdown('Author: Ruslan Klymentiev')
+st.text('Author: Ruslan Klymentiev\nDate: 15.09.2022')
 
 algorithm = st.sidebar.selectbox(
     label='Graph type:',
@@ -149,7 +151,7 @@ if algorithm == 'Grid World':
         max_value=.9, step=.1)
 
     # calulate the node size based on the number of nodes. sizes are in a [50, 400] range
-    nodes_size = ((N - 10) / (50-10)) * (50-400) + 400
+    nodes_size = ((N - 10) / (50-10)) * (50-200) + 200
 
     n_classes = int(st.sidebar.number_input(
         label='Number of classes:',
@@ -199,8 +201,8 @@ elif algorithm == 'Erdos-Renyi Graph':
 
     prob = st.sidebar.slider(
         label='Probability of edge creation:',
-        value=0.5, min_value=0.,
-        max_value=1., step=0.1)
+        value=0.1, min_value=0.1,
+        max_value=.9, step=0.1)
 
     n_classes = int(st.sidebar.number_input(
         label='Number of classes:',
@@ -224,7 +226,7 @@ threshold = st.sidebar.slider(
 
 n_steps = st.sidebar.slider(
     label='Number of simulation steps:',
-    value=5, min_value=1,
+    value=5, min_value=5,
     max_value=20, step=1)
 
 show_labels = st.sidebar.checkbox('Highlight unsatisfied nodes?', value=True)
@@ -245,22 +247,18 @@ with tab2:
         ('Step by step', 'Just the final result'),
         help="Warning: step by step visualization can take a long time to run.")
 
-    run = st.button('Run the simulation')
+    run = st.button('Run')
 
     f = st.empty()
     if run:
-
         for _ in range(n_steps):
-
             _, unsatisfied_nodes = get_unsatisfied_nodes(graph, threshold)
-            
             # exit the loop of there are no more unsatisfied nodes
             if len(unsatisfied_nodes) == 0:
                 break
             
             # iterate over all unsatisfied nodes
             for n in unsatisfied_nodes:
-
                 if algorithm == 'Grid World':
                     # randomly select a new position for a nore
                     new_pos = empty_cell_list[np.random.choice(len(empty_cell_list))]
