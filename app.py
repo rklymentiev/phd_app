@@ -1,4 +1,4 @@
-# source of motivation: https://github.com/ashishrana160796/SchellingModelSimulation
+# source of motivation: https://www.geeksforgeeks.org/spatial-segregation-in-social-networks/
 # to run the script locally run the command `streamlit run app.py`
 # documentation: https://docs.streamlit.io/knowledge-base/using-streamlit/how-do-i-run-my-streamlit-script
 # small issue with the app: whenever "Run the simulation" button is pressed, streamlit reruns *everything*,
@@ -10,25 +10,26 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def get_unsatisfied_nodes(graph, thresh):
     """
     Returns list of unsitisfied nodes of a given graph.
 
     Parameters:
     -----------
-        graph: 
-            Graph object
-        thresh: float
-            threshold value in a [0,1] range
+    graph:
+        Graph object
+    thresh: float
+        threshold value in a [0,1] range
 
     Returns:
     --------
-        ratio_similar: dict
-            Average similarity rate for each node
-        unsatisfied_nodes: list
-            List of unsitisfied nodes
+    ratio_similar: dict
+        Average similarity rate for each node
+    unsatisfied_nodes: list
+        List of unsitisfied nodes
     """
-    
+
     ratio_similar = {}
     for (n, d) in graph.nodes(data=True):
         if d['type'] == 0:  # skip if an empty node
@@ -38,7 +39,7 @@ def get_unsatisfied_nodes(graph, thresh):
         neighbors = list(graph.neighbors(n))
         for neigh in neighbors:
             ratio_similar[n].append(graph.nodes[n]["type"] == graph.nodes[neigh]["type"])
-        
+
         # calculate average similarity rate
         ratio_similar[n] = np.mean(ratio_similar[n])
 
@@ -54,20 +55,20 @@ def get_unsatisfied_nodes(graph, thresh):
 def label_unsatisfied(graph, unsatisfied_nodes):
     """
     Creates a dictionary with the labels for unsatisfied nodes.
-    
+
     Parameters:
     -----------
-        graph: 
-            Graph object
-        unsatisfied_nodes: list
-            List of unsatisfied nodes
+    graph:
+        Graph object
+    unsatisfied_nodes: list
+        List of unsatisfied nodes
 
     Returns:
     --------
-        labels: dict
-            'x' if unsatisfied, empty string if not
+    labels: dict
+        'x' if unsatisfied, empty string if not
     """
-    
+
     labels = {}
     for n in graph.nodes():
         if n in unsatisfied_nodes:
@@ -81,21 +82,21 @@ def label_unsatisfied(graph, unsatisfied_nodes):
 def plot_graph(g, p, n_classes, show_labels, nodes_size, thresh):
     """
     Plot the graph.
-    
+
     Parameters:
     -----------
-        graph: 
-            Graph object
-        p: dict
-            Dictionary with nodes' positions
-        n_classes: int
-            Number of classes in the system
-        show_labels: bool
-            List of unsatisfied nodes.
-        nodes_size: int
-            Size of nodes for the plot
+    graph:
+        Graph object
+    p: dict
+        Dictionary with nodes' positions
+    n_classes: int
+        Number of classes in the system
+    show_labels: bool
+        List of unsatisfied nodes.
+    nodes_size: int
+        Size of nodes for the plot
     """
-    
+
     # get node IDs into separate lists by type
     empty_nodes = [n for (n,d) in g.nodes(data=True) if d['type'] == 0]
     type1_nodes = [n for (n,d) in g.nodes(data=True) if d['type'] == 1]
@@ -104,7 +105,7 @@ def plot_graph(g, p, n_classes, show_labels, nodes_size, thresh):
         type3_nodes = [n for (n, d) in g.nodes(data=True) if d['type'] == 3]
     if n_classes >= 4:
         type4_nodes = [n for (n, d) in g.nodes(data=True) if d['type'] == 4]
-    
+
     # draw the nodes
     fig, ax = plt.subplots(figsize=(10, 8))
     if len(empty_nodes) != 0:
@@ -117,16 +118,15 @@ def plot_graph(g, p, n_classes, show_labels, nodes_size, thresh):
         nx.draw_networkx_nodes(g, p, node_color='lightblue', nodelist=type4_nodes, node_size=nodes_size, edgecolors='black')
 
     _, unsatisfied_nodes = get_unsatisfied_nodes(graph, thresh)
-    
+
     # draw the edges
     nx.draw_networkx_edges(g, p, width=0.5, alpha=0.7)
     # draw the labels
     if show_labels:
         labels = label_unsatisfied(graph, unsatisfied_nodes)
         nx.draw_networkx_labels(g, p, labels=labels, font_color='black')
-        
-    return fig
 
+    return fig
 
 
 st.set_page_config(
@@ -137,7 +137,7 @@ st.text('Author: Ruslan Klymentiev\nDate: 15.09.2022')
 algorithm = st.sidebar.selectbox(
     label='Graph type:',
     options=('Grid World', 'Erdos-Renyi Graph'),
-    index=0)  # default to grind world
+    index=0)  # default to grid world
 
 if algorithm == 'Grid World':
     N = st.sidebar.slider(
@@ -150,7 +150,7 @@ if algorithm == 'Grid World':
         value=0.1, min_value=.1,
         max_value=.9, step=.1)
 
-    # calulate the node size based on the number of nodes. sizes are in a [50, 400] range
+    # calulate the node size based on the number of nodes. sizes are in a [50, 200] range
     nodes_size = ((N - 10) / (50-10)) * (50-200) + 200
 
     n_classes = int(st.sidebar.number_input(
@@ -165,27 +165,27 @@ if algorithm == 'Grid World':
     # 0 - empty node
     for n in graph.nodes():
         graph.nodes[n]['type'] = np.random.choice(
-            range(n_classes+1), 
+            range(n_classes+1),
             p=[perc_empty]+[(1-perc_empty)/n_classes]*n_classes)
-    
+
     # list of empty nodes
     empty_cell_list = [n for (n, d) in graph.nodes(data=True) if d['type'] == 0]
-    n_nodes = N * N - len(empty_cell_list)  # number of total nodes in the system
-    
+    n_nodes = N * N - len(empty_cell_list)  # number of non-empty nodes in the system
+
     # create diagonal edges
-    for ((u, v), d) in graph.nodes(data=True):
+    for (u, v) in graph.nodes():
         if (u + 1 <= N - 1) and (v + 1 <= N - 1):
             graph.add_edge((u, v), (u + 1, v + 1))
 
-    for ((u, v), d) in graph.nodes(data=True):
+    for (u, v) in graph.nodes():
         if (u + 1 <= N - 1) and (v - 1 >= 0):
             graph.add_edge((u, v), (u + 1, v - 1))
 
-    # dictionary with all neighbors (incl. for empty nodes)
+    # dictionary with all neighbors (incl. empty nodes)
     all_neighbors = {}
     for n in graph.nodes():
         all_neighbors[n] = list(graph.neighbors(n))
-    
+
     # remove edges with the empty nodes
     for (n, d) in graph.nodes(data=True):
         if d['type'] == 0:
@@ -211,7 +211,7 @@ elif algorithm == 'Erdos-Renyi Graph':
 
     graph = nx.erdos_renyi_graph(n=n_nodes, p=prob)  # create the graph
     pos = nx.spring_layout(graph, seed=1)  # constant position of the nodes
-    
+
     # randombly assign types
     for n in graph.nodes():
         graph.nodes[n]['type'] = np.random.choice(range(1,n_classes+1))
@@ -237,7 +237,7 @@ tab1, tab2 = st.tabs(["Initial Graph", "Simulations"])
 with tab1:
     st.pyplot(plot_graph(graph, pos, n_classes, show_labels, nodes_size, threshold))
     ratio_similar, unsatisfied_nodes = get_unsatisfied_nodes(graph, threshold)
-    st.write(f"""**Number of unsatisfied nodes**: {len(unsatisfied_nodes)} out of {n_nodes} 
+    st.write(f"""**Number of unsatisfied nodes**: {len(unsatisfied_nodes)} out of {n_nodes}
     ({len(unsatisfied_nodes) * 100 / (n_nodes):.2f}%)""")
     st.write(f"""**Average similarity ratio**: {np.nanmean(list(ratio_similar.values())):.2f}""")
 
@@ -256,7 +256,7 @@ with tab2:
             # exit the loop of there are no more unsatisfied nodes
             if len(unsatisfied_nodes) == 0:
                 break
-            
+
             # iterate over all unsatisfied nodes
             for n in unsatisfied_nodes:
                 if algorithm == 'Grid World':
@@ -269,16 +269,16 @@ with tab2:
                     neighbors = list(graph.neighbors(n))
                     for neigh in neighbors:
                         graph.remove_edge(n, neigh)
-                    
+
                     # swap the types of nodes
                     graph.nodes(data=True)[new_pos]['type'] = graph.nodes(data=True)[n]['type']
                     graph.nodes(data=True)[n]['type'] = 0
-                    
+
                     # create edges with the new neighbors
                     for neigh in all_neighbors[new_pos]:
                         if graph.nodes(data=True)[neigh]['type'] != 0:
                             graph.add_edge(new_pos, neigh)
-                            
+
                 elif algorithm == 'Erdos-Renyi Graph':
                     neighbors = list(graph.neighbors(n))
                     # remove edges with the old neighbors
