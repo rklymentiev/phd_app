@@ -1,3 +1,4 @@
+# app link: https://rklymentiev-phd-app-app-8qs9b9.streamlitapp.com/
 # source of motivation: https://www.geeksforgeeks.org/spatial-segregation-in-social-networks/
 # to run the script locally run the command `streamlit run app.py`
 # documentation: https://docs.streamlit.io/knowledge-base/using-streamlit/how-do-i-run-my-streamlit-script
@@ -5,7 +6,6 @@
 # so the initial graph is also updating
 
 import streamlit as st
-import streamlit.components.v1 as components
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
