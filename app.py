@@ -139,6 +139,10 @@ algorithm = st.sidebar.selectbox(
     options=('Grid World', 'Erdos-Renyi Graph'),
     index=0)  # default to grid world
 
+st.sidebar.warning(
+    'A new graph will be generated whenever any of the input parameters are changed.',
+    icon="ℹ")
+
 if algorithm == 'Grid World':
     N = st.sidebar.slider(
         label='Grid size (NxN):',
